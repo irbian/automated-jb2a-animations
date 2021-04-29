@@ -1,18 +1,40 @@
-export default class Dnd5Handler {
+export default class Pf2Handler {
     constructor(msg) {
-        const itemId = msg.data?.flags?.pf2e?.roll?.itemId || $(msg.data.content).attr("data-item-id");
+        //const regexAttack = /<strong>\s?.*:\s?(.*)\s?<\/strong>/;
+        const regexAttack = /<strong>Strike: (.*)<\/strong>/;
+        const regexDamage = /<b>Damage Roll: (.*)<\/b>/;
+        const htmlString = msg.data.flavor;
+        //const itemName = htmlString.match(regexAttack)[1] || htmlString.match(regexDamage)[1];
+        let itemName;
+        switch (true) {
+            case (msg.data.flags.pf2e?.context?.type === "attack-roll"):
+                itemName = htmlString?.match(regexAttack)[1];
+                break;
+            case (htmlString?.match(regexDamage)[1] !== null):
+                itemName = htmlString?.match(regexDamage)[1];
+                break;
+            default:
+                return
+        }
+        console.log(itemName);
+
         const tokenId = msg.data.speaker.token;  
-        this._actorToken = canvas.tokens.get(tokenId) || canvas.tokens.placeables.find(token => token.actor.items.get(itemId) != null);
-        this._itemId = itemId;
+        this._actorToken = canvas.tokens.get(tokenId);
+
+        if (!this._actorToken) {
+            return;
+        }
+
         this._allTargets = Array.from(msg.user.targets);
-        this._itemName = this._actorToken.actor?.items?.get(itemId)?.name?.toLowerCase() ?? "";
-        this._itemSource = this._actorToken.actor.items.get(itemId)?.data?.data?.source?.toLowerCase() ?? "";
-        this._itemType = this._actorToken.actor.items?.get(itemId)?.data?.type?.toLowerCase();
+        this._item = this._actorToken.actor?.items?.get(itemName) ?? "";
+        console.log(this._item);
+        this._itemName = itemName.toLowerCase();
+        //this._itemType = this._actorToken.actor.items?.get(itemId)?.data?.type?.toLowerCase();
 
         // getting flag data from Animation Tab
-        this._flags = this._actorToken.actor.items?.get(itemId)?.data?.flags?.autoanimations ?? "";
+        this._flags = this._actorToken.actor.items?.get(itemName)?.data?.flags?.autoanimations ?? "";
         // 
-        this._animColor = this._actorToken.actor.items?.get(itemId)?.data?.flags?.autoanimations?.color?.toLowerCase() ?? "";
+        this._animColor = this._actorToken.actor.items?.get(itemName)?.data?.flags?.autoanimations?.color?.toLowerCase() ?? "";
         this._animName = this._flags.animName?.toLowerCase() ?? "";
         this._animExColor = this._flags.explodeColor?.toLowerCase() ?? "";
         this._animExRadius = this._flags.explodeRadius?.toLowerCase() ?? "";
@@ -23,6 +45,11 @@ export default class Dnd5Handler {
         this._animOverride = this._flags.override;
         this._animExplode = this._flags.explosion;
         this._animDgThrVar = this._flags.dtvar?.toLowerCase() ?? "";
+        this._selfRadius = this._flags.selfRadius ?? "";
+        this._animTint = this._flags.animTint ?? "";
+        this._auraOpacity = this._flags.auraOpacity ?? "";
+        this._ctaOption = this._flags.ctaOption ?? "";
+        this._hmAnim = this._flags.hmAnim ?? "";
 
         //console.log(this._animName);
         this._animNameFinal;
@@ -34,7 +61,7 @@ export default class Dnd5Handler {
                 this._animNameFinal = this._animName;
                 break;
         }
-        //console.log(this._animNameFinal);
+        console.log(this._animNameFinal);
         this._animColorEffect;
         switch (true) {
             case(this._animColor === ``):
@@ -93,6 +120,10 @@ export default class Dnd5Handler {
     get animColor() {
         return this._animColorEffect;
     }
+            
+    get color () {
+        return this._animColor;
+    }
 
     get animName() {
         return this._animNameFinal;
@@ -134,17 +165,26 @@ export default class Dnd5Handler {
         return this._animDgThrVar;
     }
 
+    get selfRadius() {
+        return this._selfRadius;
+    }
 
-/*
-    get killAnim() {
-        return this._actorToken.actor.items.get(itemId).data.flags?.autoanimations?.animName?.toLowerCase() ?? "";
+    get animTint() {
+        return this._animTint;
     }
-*/
-/*
-    get itemType() {
-        return this._actor.items.get(itemId).data.type.toLowerCase();
+
+    get auraOpacity() {
+        return this._auraOpacity;
     }
-*/
+
+    get ctaOption() {
+        return this._ctaOption;
+    }
+
+    get hmAnim() {
+        return this._hmAnim;
+    }
+
     getDistanceTo(target) {
         var x, x1, y, y1, d, r, segments = [], rdistance, distance;
         for (x = 0; x < this._actorToken.data.width; x++) {
