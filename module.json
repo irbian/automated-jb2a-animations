@@ -51,6 +51,12 @@
             "path": "lang/de.json"
         }  
     ],
+    "dependencies": [
+        {
+            "name": "sequencer",
+            "type": "module"
+        }
+    ],
     "socket": true,
     "manifest": "https://raw.githubusercontent.com/otigon/automated-jb2a-animations/main/module.json",
     "download": "https://github.com/otigon/automated-jb2a-animations/archive/main.zip"

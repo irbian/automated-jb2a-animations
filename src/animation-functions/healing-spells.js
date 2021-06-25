@@ -75,9 +75,9 @@ async function onTargetSpells(handler) {
             break;
     }
     var videoData = await getVideoDimensionsOf(filePath);
-    let videoHeight = videoData.height;
+    //let videoHeight = videoData.height;
     let videoWidth = videoData.width;
-    let duration = videoData.duration * 1000;
+    //let duration = videoData.duration * 1000;
 
     let tmColor = TMFXCOLORS[color]();
     let globalDelay = game.settings.get("autoanimations", "globaldelay");
@@ -102,29 +102,29 @@ async function onTargetSpells(handler) {
             let animLevel = handler.flags.animLevel;
             //console.log(animLevel);
             // Defining spell animation for FX Master
-            let spellAnim =
-            {
-                file: filePath,
-                position: target.center,
-                anchor: {
-                    x: 0.5,
-                    y: 0.5
-                },
-                angle: 0,
-                scale: {
-                    x: scaleX,
-                    y: scaleX
-                },
-                below: animLevel
-            };
+            
             if (animLevel) {
-                canvas.autoanimationsG.playVideo(spellAnim);
-                game.socket.emit('module.autoanimations', spellAnim);
+                new Sequence()
+                    .effect()
+                        .file(filePath)
+                        .atLocation(target)
+                        .scale(scaleX)
+                        .belowTokens()
+                        .waitUntilFinished(-500)
+                    .effect()
+                        .file("modules/jb2a_patreon/Library/Generic/Explosion/Explosion_01_Blue_400x400.webm")
+                        .atLocation(target)
+                        .scale(scaleX)
+                    .play()
             } else {
-                canvas.autoanimations.playVideo(spellAnim);
-                game.socket.emit('module.autoanimations', spellAnim);
+                new Sequence()
+                    .effect()
+                    .file(filePath)
+                    .atLocation(target)
+                    .scale(scaleX)
+                    //.belowTokens()
+                    .play()
             }
-
             let Holy =
                 [{
                     filterType: "outline",
@@ -153,6 +153,8 @@ async function onTargetSpells(handler) {
             }
         }
     }
+    let newTarget = handler.allTargets[0];
+    let token = handler.actorToken;
     cast();
 }
 
